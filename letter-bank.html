@@ -1,0 +1,1236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EduDesk — KPK Letter Bank Generator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&family=Libre+Baskerville:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F2ECDC; --paper-deep:#E8DFC4; --paper-line:#DCCEAE;
+  --ink:#1B2A4A; --ink-soft:#46557A;
+  --red:#9E2B25; --green:#1F5C3E; --green-deep:#163F2B; --gold:#A6792B;
+  --r-s:3px; --r-m:6px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Inter',sans-serif;background:var(--paper);color:var(--ink);-webkit-font-smoothing:antialiased;}
+a{color:inherit;text-decoration:none;}
+
+/* ── header ── */
+.site-header{
+  background:var(--paper);border-bottom:3px double var(--red);
+  padding:12px 24px;display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:60;
+}
+.brand{display:flex;align-items:center;gap:11px;}
+.seal{width:38px;height:38px;border-radius:50%;border:2px solid var(--ink);display:flex;align-items:center;justify-content:center;position:relative;flex-shrink:0;}
+.seal::before{content:"";position:absolute;inset:4px;border:1px dashed var(--ink);border-radius:50%;}
+.seal span{font-family:'Fraunces',serif;font-weight:700;font-size:13px;}
+.brand-text strong{display:block;font-family:'Fraunces',serif;font-size:16px;}
+.brand-text small{display:block;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft);}
+.back-link{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--ink-soft);}
+.back-link:hover{color:var(--red);}
+
+/* ── layout ── */
+.page{display:grid;grid-template-columns:420px 1fr;min-height:calc(100vh - 63px);}
+@media(max-width:1000px){.page{grid-template-columns:1fr;}}
+
+/* ── form panel ── */
+.form-panel{
+  background:var(--paper-deep);border-right:2px solid var(--paper-line);
+  padding:22px 20px 50px;overflow-y:auto;
+  position:sticky;top:63px;max-height:calc(100vh - 63px);
+}
+@media(max-width:1000px){.form-panel{position:relative;top:0;max-height:none;border-right:none;border-bottom:2px solid var(--paper-line);}}
+.panel-head{margin-bottom:18px;padding-bottom:14px;border-bottom:2px solid var(--paper-line);}
+.eyebrow{font-family:'IBM Plex Mono',monospace;font-size:10.5px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--red);display:block;margin-bottom:5px;}
+.panel-head h2{font-family:'Fraunces',serif;font-size:20px;}
+.panel-head p{font-size:12px;color:var(--ink-soft);margin-top:5px;}
+
+/* ── template picker ── */
+.picker{
+  background:var(--paper);border:2px solid var(--ink);border-radius:var(--r-m);
+  padding:12px;margin-bottom:20px;
+}
+.picker label{
+  font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.14em;
+  color:var(--red);font-weight:600;display:block;margin-bottom:6px;
+}
+.picker select{
+  width:100%;padding:9px 11px;background:#fff;
+  border:1.5px solid var(--paper-line);border-radius:var(--r-s);
+  font-family:'Inter',sans-serif;font-size:14px;font-weight:600;color:var(--ink);
+  outline:none;cursor:pointer;
+}
+.picker select optgroup{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--red);}
+
+/* ── form bits ── */
+.fs{margin-bottom:20px;}
+.fs-title{
+  font-family:'IBM Plex Mono',monospace;font-size:10.5px;font-weight:600;
+  letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft);
+  display:flex;align-items:center;gap:8px;margin-bottom:11px;
+}
+.fs-title::after{content:"";flex:1;height:1px;background:var(--paper-line);}
+.f{margin-bottom:11px;}
+.f label{display:block;font-size:12.5px;font-weight:600;margin-bottom:4px;}
+.f input,.f select,.f textarea{
+  width:100%;padding:8px 11px;background:var(--paper);
+  border:1.5px solid var(--paper-line);border-radius:var(--r-s);
+  font-family:'Inter',sans-serif;font-size:13.5px;color:var(--ink);outline:none;
+  transition:border-color .15s;
+}
+.f input:focus,.f select:focus,.f textarea:focus{border-color:var(--ink);}
+.f textarea{resize:vertical;min-height:60px;line-height:1.5;font-size:13px;}
+.f-row{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
+.f-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px;}
+.note{font-size:11px;color:var(--ink-soft);margin-top:3px;}
+
+/* ── repeating rows (transfer proposal, retirement list) ── */
+.row-card{
+  background:var(--paper);border:1px solid var(--paper-line);
+  border-radius:var(--r-s);padding:11px;margin-bottom:9px;position:relative;
+}
+.row-card .rm{
+  position:absolute;top:7px;right:8px;width:20px;height:20px;
+  border:none;background:var(--red);color:#fff;border-radius:3px;
+  cursor:pointer;font-size:13px;line-height:1;
+}
+.row-card .rm:hover{background:#7E1F1B;}
+.row-num{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--red);font-weight:600;margin-bottom:7px;}
+
+/* ── buttons ── */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:7px;
+  padding:10px 18px;border-radius:var(--r-s);
+  font-weight:600;font-size:13.5px;border:1.5px solid transparent;cursor:pointer;
+  transition:transform .15s,box-shadow .15s;font-family:'Inter',sans-serif;
+}
+.btn--primary{background:var(--green);color:var(--paper);border-color:var(--green);}
+.btn--primary:hover{transform:translateY(-2px);box-shadow:0 5px 0 0 var(--green-deep);}
+.btn--ghost{background:transparent;border-color:var(--ink);color:var(--ink);}
+.btn--ghost:hover{background:var(--ink);color:var(--paper);}
+.btn--full{width:100%;}
+.btn--add{background:var(--paper);border:1.5px dashed var(--ink-soft);color:var(--ink-soft);width:100%;margin-bottom:14px;}
+.btn--add:hover{border-color:var(--green);color:var(--green);}
+
+/* ── preview panel ── */
+.preview-panel{padding:28px 32px 60px;overflow-y:auto;background:var(--paper);}
+@media(max-width:1000px){.preview-panel{padding:22px 14px 44px;}}
+.pv-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;gap:12px;flex-wrap:wrap;}
+.pv-head h3{font-family:'Fraunces',serif;font-size:17px;}
+.pv-badge{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.08em;background:var(--ink);color:var(--paper);padding:4px 9px;border-radius:var(--r-s);}
+
+/* ══════ THE LETTER DOCUMENT (A4) ══════ */
+.doc{
+  background:#fff;border:1px solid #ddd;border-radius:var(--r-m);
+  padding:44px 52px;max-width:820px;margin:0 auto;
+  box-shadow:0 4px 24px rgba(0,0,0,.08);
+  font-family:'Libre Baskerville',serif;color:#111;
+  font-size:12pt;line-height:1.55;
+}
+.doc-head{text-align:center;margin-bottom:26px;padding-bottom:14px;border-bottom:1.5px double #333;}
+.doc-office{
+  font-family:'Fraunces',serif;font-weight:700;
+  font-size:14pt;letter-spacing:.02em;text-transform:uppercase;
+  line-height:1.3;
+}
+.doc-email{
+  font-family:'Inter',sans-serif;font-size:9.5pt;color:#666;
+  margin-top:5px;
+}
+.doc-meta{
+  display:flex;justify-content:space-between;margin:20px 0 22px;
+  font-size:11pt;
+}
+.doc-meta .no,.doc-meta .dt{font-family:'Inter',sans-serif;}
+.to-block{margin-bottom:20px;font-size:11.5pt;line-height:1.4;}
+.to-block b{display:block;font-weight:700;}
+.subject{
+  border-top:1px solid #333;border-bottom:1px solid #333;
+  padding:8px 0;margin-bottom:18px;text-align:center;
+  font-weight:700;font-size:12pt;letter-spacing:.03em;text-transform:uppercase;
+}
+.subject span{font-weight:400;font-style:italic;}
+.memo-tag{
+  font-weight:700;margin-bottom:6px;font-size:11.5pt;
+}
+.body-p{
+  text-align:justify;text-indent:2em;margin-bottom:12px;font-size:11.5pt;
+}
+.body-p:first-of-type{text-indent:2.5em;}
+.doc-table{
+  width:100%;border-collapse:collapse;margin:14px 0;font-size:10.5pt;
+  font-family:'Inter',sans-serif;
+}
+.doc-table th,.doc-table td{
+  border:1px solid #444;padding:6px 8px;text-align:left;vertical-align:top;
+}
+.doc-table th{
+  background:#eaeaea;font-weight:700;font-size:10pt;
+  letter-spacing:.04em;text-transform:uppercase;
+}
+.doc-table td.num{text-align:center;font-family:'IBM Plex Mono',monospace;}
+.doc-signature{
+  margin-top:38px;text-align:right;font-size:11.5pt;line-height:1.5;
+}
+.doc-signature b{display:block;font-weight:700;}
+.endst{
+  margin-top:30px;border-top:1px solid #999;padding-top:12px;
+  font-size:10.5pt;
+}
+.endst-line{
+  display:flex;justify-content:space-between;font-family:'Inter',sans-serif;
+  margin-bottom:8px;
+}
+.endst-copy{margin-top:8px;font-weight:700;}
+.endst-list{margin:6px 0 0 24px;font-size:10.5pt;}
+.endst-list li{margin-bottom:3px;}
+
+.ph{background:rgba(158,43,37,.08);border-bottom:1px dashed var(--red);color:var(--red);font-style:italic;padding:0 3px;}
+
+/* in print, placeholders drop the red highlight and become plain underlined blanks so
+   the printed letter is clean even if the user forgot to fill something */
+@media print{
+  .ph{background:transparent;border-bottom:1px solid #666;color:inherit;font-style:normal;}
+}
+
+/* ── print ── */
+@media print{
+  .site-header,.form-panel,.pv-head{display:none!important;}
+  .page{display:block;}
+  .preview-panel{padding:0;overflow:visible;}
+  .doc{border:none;box-shadow:none;padding:0;max-width:100%;font-size:11.5pt;}
+  body{background:#fff;}
+  @page{size:A4;margin:20mm 22mm;}
+}
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="brand">
+    <div class="seal"><span>ED</span></div>
+    <div class="brand-text">
+      <strong>EduDesk.pk</strong>
+      <small>KPK Letter Bank</small>
+    </div>
+  </div>
+  <a class="back-link" href="https://edudesk.pk">← EduDesk.pk</a>
+</header>
+
+<div class="page">
+
+<!-- ════════ FORM PANEL ════════ -->
+<aside class="form-panel">
+  <div class="panel-head">
+    <span class="eyebrow">Office Correspondence</span>
+    <h2>KPK Letter Bank</h2>
+    <p>25+ sarkari khat — dropdown se select karo, details bharo, print karo.</p>
+  </div>
+
+  <div class="picker">
+    <label>Letter Template Select Karein</label>
+    <select id="tpl" onchange="templateChanged()">
+      <optgroup label="Transfers & Postings">
+        <option value="transfer-proposal">Transfer / Adjustment Proposal</option>
+        <option value="mutual-transfer">Mutual Transfer Application</option>
+        <option value="transfer-request">Personal Transfer Request</option>
+        <option value="charge-handover">Charge Handover / Relieving</option>
+      </optgroup>
+      <optgroup label="Leave">
+        <option value="expak-noc" selected>Ex-Pakistan Leave NOC (General)</option>
+        <option value="earned-leave">Earned Leave Application</option>
+        <option value="umrah-noc">NOC for Ex-Pakistan Leave (Umrah)</option>
+        <option value="family-visit-noc">NOC — Family Visit Abroad</option>
+        <option value="medical-leave">Medical Leave Application</option>
+        <option value="study-leave">Study Leave (M.Phil / PhD)</option>
+        <option value="leave-encashment">Leave Encashment Request</option>
+      </optgroup>
+      <optgroup label="Retirement & Pension">
+        <option value="retirement-proforma">Retirement Proforma Submission</option>
+        <option value="family-pension">Family Pension Transfer Case</option>
+        <option value="lump-sum-grant">Lump Sum Grant Case</option>
+      </optgroup>
+      <optgroup label="Budget & Finance">
+        <option value="conveyance-allowance">Conveyance Allowance Request</option>
+        <option value="ifl-loan">Interest-Free Loan Application</option>
+        <option value="hba">House Building Advance</option>
+        <option value="ta-pol">TA &amp; POL Clearance Request</option>
+        <option value="fund-allocation">Allocation of Fund Request</option>
+      </optgroup>
+      <optgroup label="Service & Admin">
+        <option value="departmental-permission">Departmental Permission</option>
+        <option value="duplicate-service-book">Duplicate Service Book Request</option>
+        <option value="ddo-authority">DDO Ship Authority</option>
+        <option value="dob-correction">Date of Birth Correction</option>
+        <option value="name-correction">Father Name / Name Correction</option>
+        <option value="authority-cheque">Authority Letter — Cheque Book</option>
+      </optgroup>
+      <optgroup label="Disciplinary">
+        <option value="explanation-reply">Explanation / Reply</option>
+        <option value="show-cause-reply">Show Cause Response</option>
+        <option value="absence-reply">Absence Explanation Reply</option>
+        <option value="audit-note-reply">Audit Note Reply</option>
+      </optgroup>
+    </select>
+  </div>
+
+  <!-- ─── shared: office info ─── -->
+  <div class="fs">
+    <div class="fs-title">Office / Sender</div>
+    <div class="f">
+      <label>Aap Ke Office Ka Naam</label>
+      <input id="fromOffice" placeholder="OFFICE OF THE ______________________" oninput="upc(this);render()">
+    </div>
+    <div class="f">
+      <label>Office Email (optional)</label>
+      <input id="fromEmail" placeholder="office@example.com" oninput="render()">
+    </div>
+    <div class="f-row">
+      <div class="f">
+        <label>Letter No.</label>
+        <input id="letterNo" placeholder="_______" oninput="render()">
+      </div>
+      <div class="f">
+        <label>Date</label>
+        <input type="date" id="letterDate" oninput="render()">
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── shared: recipient ─── -->
+  <div class="fs">
+    <div class="fs-title">Recipient / To</div>
+    <div class="f">
+      <label>Kis Ko Bhejni Hai</label>
+      <input id="toName" placeholder="Recipient Officer / Authority" oninput="upc(this);render()">
+    </div>
+    <div class="f">
+      <label>Address Line</label>
+      <input id="toAddress" placeholder="Full address of recipient" oninput="render()">
+    </div>
+  </div>
+
+  <!-- ─── shared: copy forwarded ─── -->
+  <div class="fs">
+    <div class="fs-title">Copy Forwarded To</div>
+    <div class="f">
+      <label>Har line pe ek entry likhein</label>
+      <textarea id="copyList" placeholder="e.g.&#10;Concerned District Officer&#10;Concerned Accounts Officer&#10;Concerned Employee&#10;Office File" oninput="render()" style="min-height:90px;"></textarea>
+      <p class="note">Jitne bhi copies bhejni hain, alag alag line pe likhein. Endst section mein khud se numbered list ban jayegi.</p>
+    </div>
+  </div>
+
+  <!-- ─── template-specific fields ─── -->
+  <div id="dynFields"></div>
+
+<button class="btn btn--primary btn--full" onclick="window.print()">🖨️ Print / Save PDF</button>
+  <button class="btn btn--ghost btn--full" style="margin-top:9px;" onclick="resetAll()">Reset Form</button>
+</aside>
+
+<!-- ════════ PREVIEW ════════ -->
+<main class="preview-panel">
+  <div class="pv-head">
+    <div>
+      <span class="eyebrow">Live Preview</span>
+      <h3 id="pvTitle">Transfer / Adjustment Proposal</h3>
+    </div>
+    <div style="display:flex;align-items:center;gap:11px;flex-wrap:wrap;">
+      <span class="pv-badge">A4 · PRINT-READY</span>
+      <button class="btn btn--primary" onclick="window.print()">🖨️ Print</button>
+    </div>
+  </div>
+
+  <div class="doc" id="doc"></div>
+</main>
+</div>
+
+<script>
+/* ═══════════ HELPERS ═══════════ */
+const $ = id => document.getElementById(id);
+const v = id => ($(id)?.value || '').trim();
+const upc = el => { const p = el.selectionStart; el.value = el.value.toUpperCase(); el.setSelectionRange(p,p); };
+const esc = s => (s||'').toString().replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/\n/g,'<br>');
+const ph  = (val, fb) => val ? esc(val) : `<span class="ph">${fb}</span>`;
+const fmtDate = d => {
+  if(!d) return '';
+  const x = new Date(d);
+  return `${String(x.getDate()).padStart(2,'0')}-${String(x.getMonth()+1).padStart(2,'0')}-${x.getFullYear()}`;
+};
+
+/* ═══════════ TEMPLATE DEFINITIONS ═══════════
+   Each template has:
+     title      — dropdown label / preview heading
+     subject    — line printed inside the letter's Subject: bar
+     fields     — array of input specs to build the dynamic form section
+     rows       — (optional) definition of a repeatable list, e.g. transfer proposal
+     body       — function(v, rows) → HTML string for the letter body
+     signAs     — 'sdeo' | 'headmaster' | 'employee'  (who signs at bottom)
+     endstTo    — array of copy-to lines
+*/
+
+const TEMPLATES = {
+
+  'transfer-proposal': {
+    title: 'Transfer / Adjustment Proposal',
+    subject: 'PROPOSAL FOR TRANSFER / ADJUSTMENT',
+    fields: [
+      {id:'postCat', label:'Post Category', type:'select', options:['PST','PSHT','SPST','SST','CT','AT','TT','DM','PET','QARI','HEAD TEACHER','HEAD MISTRESS','PRINCIPAL','ACCOUNT ASSISTANT','JUNIOR CLERK','SENIOR CLERK','NAIB QASID','CHOWKIDAR','SWEEPER','OTHER'], def:'PST'},
+    ],
+    rows: {
+      label: 'Transfer Rows',
+      addLabel: '+ Teacher Add Karein',
+      cols: [
+        {id:'name',   label:'Name of Teacher', up:true},
+        {id:'from',   label:'From (School)',   up:true},
+        {id:'to',     label:'To (School)',     up:true},
+        {id:'tenure', label:'Tenure',          up:false, placeholder:'2 Years'}
+      ]
+    },
+    body: (V, rows) => `
+      <p class="memo-tag">Memo:</p>
+      <p class="body-p">The below noted Transfer / Adjustment proposal of ${V.postCat||'PST'} is submitted for your kind perusal and necessary approval please.</p>
+      <table class="doc-table">
+        <thead><tr>
+          <th style="width:36px;">S.No.</th>
+          <th>Name of Teacher / Post</th>
+          <th>From</th><th>To</th>
+          <th style="width:96px;">Tenure</th>
+        </tr></thead>
+        <tbody>
+          ${rows.length ? rows.map((r,i)=>`
+            <tr>
+              <td class="num">${String(i+1).padStart(2,'0')}</td>
+              <td>${esc(r.name)||'—'}</td>
+              <td>${esc(r.from)||'—'}</td>
+              <td>${esc(r.to)||'—'}</td>
+              <td>${esc(r.tenure)||'—'}</td>
+            </tr>`).join('') : `<tr><td colspan="5" style="text-align:center;color:#888;padding:20px;">Rows add karein...</td></tr>`}
+        </tbody>
+      </table>`,
+    signAs: 'sdeo',
+    endstTo: []  /* user apni copy list khud add karein */
+  },
+
+  'mutual-transfer': {
+    title: 'Mutual Transfer Application',
+    subject: 'APPLICATION FOR MUTUAL TRANSFER',
+    fields: [
+      {id:'appA_name',   label:'Applicant A — Naam',     up:true},
+      {id:'appA_post',   label:'Applicant A — Post/BPS', up:true, placeholder:'e.g. TEACHER BPS-12'},
+      {id:'appA_school', label:'Applicant A — School',   up:true},
+      {id:'appB_name',   label:'Applicant B — Naam',     up:true},
+      {id:'appB_post',   label:'Applicant B — Post/BPS', up:true, placeholder:'e.g. TEACHER BPS-12'},
+      {id:'appB_school', label:'Applicant B — School',   up:true},
+      {id:'reason',      label:'Wajah (reason)',         type:'textarea', placeholder:'Domestic circumstances / family reasons...'},
+    ],
+    body: V => `
+      <p class="memo-tag">Respected Sir / Madam,</p>
+      <p class="body-p">With due respect, it is submitted that the undersigned two teachers wish to apply for mutual transfer as follows:</p>
+      <table class="doc-table">
+        <thead><tr><th>Applicant</th><th>Name</th><th>Post</th><th>Present School</th></tr></thead>
+        <tbody>
+          <tr><td>A</td><td>${ph(V.appA_name,'NAAM')}</td><td>${ph(V.appA_post,'POST')}</td><td>${ph(V.appA_school,'SCHOOL')}</td></tr>
+          <tr><td>B</td><td>${ph(V.appB_name,'NAAM')}</td><td>${ph(V.appB_post,'POST')}</td><td>${ph(V.appB_school,'SCHOOL')}</td></tr>
+        </tbody>
+      </table>
+      <p class="body-p">Reason: ${ph(V.reason,'WAJAH')}</p>
+      <p class="body-p">It is therefore humbly requested that our mutual transfer between the above schools may kindly be approved. Both applicants have consented to this arrangement.</p>`,
+    signAs: 'employee',
+    endstTo: []  /* user apni copy list khud add karein */
+  },
+
+  'transfer-request': {
+    title: 'Personal Transfer Request',
+    subject: 'REQUEST FOR TRANSFER',
+    fields: [
+      {id:'name',       label:'Aap Ka Naam',           up:true},
+      {id:'post',       label:'Post / BPS',            up:true, placeholder:'e.g. TEACHER BPS-12'},
+      {id:'presentSch', label:'Present School',        up:true},
+      {id:'requestSch', label:'Requested School',      up:true},
+      {id:'joinDate',   label:'Present School Joining Date', type:'date'},
+      {id:'reason',     label:'Reason for Transfer',   type:'textarea'},
+    ],
+    body: V => `
+      <p class="memo-tag">Respected Sir / Madam,</p>
+      <p class="body-p">With due respect, it is submitted that the undersigned, ${ph(V.name,'NAAM')}, presently working as ${ph(V.post,'POST')} at ${ph(V.presentSch,'PRESENT SCHOOL')} since ${V.joinDate?fmtDate(V.joinDate):'<span class="ph">JOINING DATE</span>'}, wishes to apply for transfer to ${ph(V.requestSch,'REQUESTED SCHOOL')}.</p>
+      <p class="body-p">Reason: ${ph(V.reason,'WAJAH')}</p>
+      <p class="body-p">It is therefore humbly requested that transfer orders may kindly be issued in the applicant's favour.</p>`,
+    signAs: 'employee',
+    endstTo: []  /* user apni copy list khud add karein */
+  },
+
+  'charge-handover': {
+    title: 'Charge Handover / Relieving',
+    subject: 'CHARGE HANDOVER / RELIEVING CERTIFICATE',
+    fields: [
+      {id:'relName',   label:'Relieving Officer Naam',  up:true},
+      {id:'relPost',   label:'Relieving Officer Post',  up:true},
+      {id:'takName',   label:'Taking-Over Officer Naam',up:true},
+      {id:'takPost',   label:'Taking-Over Post',        up:true},
+      {id:'school',    label:'School / Office',         up:true},
+      {id:'effDate',   label:'Effective Date',          type:'date'},
+      {id:'orderNo',   label:'Transfer Order No.',      placeholder:'____________'},
+    ],
+    body: V => `
+      <p class="memo-tag">Memo:</p>
+      <p class="body-p">Certified that ${ph(V.relName,'RELIEVING OFFICER')} (${ph(V.relPost,'POST')}) has handed over the charge of ${ph(V.school,'SCHOOL / OFFICE')} to ${ph(V.takName,'TAKING-OVER OFFICER')} (${ph(V.takPost,'POST')}) with effect from ${V.effDate?fmtDate(V.effDate):'<span class="ph">DATE</span>'} in compliance with transfer order No. ${ph(V.orderNo,'ORDER NO')}.</p>
+      <p class="body-p">All records, cash, stock, and official files have been physically handed over and taken over. Nothing is outstanding on the part of either officer.</p>
+      <div style="display:flex;justify-content:space-between;margin-top:32px;text-align:center;">
+        <div style="flex:1;padding:0 10px;border-top:1px solid #444;padding-top:4px;">Handing-Over Officer<br><small>${esc(V.relName)||'—'}</small></div>
+        <div style="flex:1;padding:0 10px;border-top:1px solid #444;padding-top:4px;">Taking-Over Officer<br><small>${esc(V.takName)||'—'}</small></div>
+      </div>`,
+    signAs: 'sdeo',
+    endstTo: []  /* user apni copy list khud add karein */
+  },
+
+  'earned-leave': {
+    title: 'Earned Leave Application',
+    subject: 'APPLICATION FOR EARNED LEAVE',
+    fields: [
+      {id:'name',    label:'Aap Ka Naam',   up:true},
+      {id:'post',    label:'Post / BPS',    up:true},
+      {id:'school',  label:'School',        up:true},
+      {id:'from',    label:'From',          type:'date'},
+      {id:'to',      label:'To',            type:'date'},
+      {id:'days',    label:'Kitne Din',     type:'number', placeholder:'auto', auto:true},
+      {id:'reason',  label:'Wajah',         type:'textarea'},
+      {id:'address', label:'Leave Address', type:'textarea'},
+    ],
+    body: V => {
+      const days = V.days || (V.from && V.to
+        ? Math.round((new Date(V.to) - new Date(V.from)) / 86400000) + 1 : '');
+      return `
+      <p class="memo-tag">Respected Sir / Madam,</p>
+      <p class="body-p">With due respect, it is submitted that the undersigned, ${ph(V.name,'NAAM')} (${ph(V.post,'POST')}), presently working at ${ph(V.school,'SCHOOL')}, wishes to apply for <b>${days||'___'} days</b> earned leave with effect from ${V.from?fmtDate(V.from):'<span class="ph">FROM</span>'} to ${V.to?fmtDate(V.to):'<span class="ph">TO</span>'}.</p>
+      <p class="body-p">Reason: ${ph(V.reason,'WAJAH')}</p>
+      <p class="body-p">Leave address: ${ph(V.address,'ADDRESS DURING LEAVE')}</p>
+      <p class="body-p">It is therefore humbly requested that the leave may kindly be sanctioned.</p>`;
+    },
+    signAs: 'employee',
+    endstTo: []  /* user apni copy list khud add karein */
+  },
+
+  'expak-noc': {
+    title: 'Ex-Pakistan Leave NOC (General)',
+    subject: 'NO OBJECTION CERTIFICATE FOR EX-PAKISTAN LEAVE',
+    fields: [
+      {id:'name',      label:'Employee Naam',   up:true},
+      {id:'gender',    label:'Gender',          type:'select', options:['Male','Female'], def:'Female'},
+      {id:'title',     label:'Title',           type:'select', options:['Mr.','Miss','Mrs.','Ms.'], def:'Miss'},
+      {id:'post',      label:'Post / BPS',      up:true, placeholder:'e.g. TEACHER BPS-12'},
+      {id:'cnic',      label:'CNIC',            placeholder:'13101-XXXXXXX-X'},
+      {id:'passport',  label:'Passport No.',    up:true},
+      {id:'school',    label:'School / Office', up:true},
+      {id:'tehsil',    label:'Tehsil',          up:true, placeholder:'e.g. TEHSIL NAAM'},
+      {id:'district',  label:'District',        up:true, placeholder:'e.g. DISTRICT NAAM'},
+      {id:'purpose',   label:'Purpose',         type:'select',
+       options:['Performance of Umrah','Performance of Hajj','Family Visit','Business / Trade','Medical Treatment','Tourism','Other']},
+      {id:'purposeOther', label:'Purpose (if Other)', placeholder:'Specify only if purpose = Other'},
+      {id:'country',   label:'Country',         up:true, def:'SAUDI ARABIA'},
+      {id:'from',      label:'From',            type:'date'},
+      {id:'to',        label:'To',              type:'date'},
+    ],
+    body: V => {
+      const days = V.from && V.to ? Math.round((new Date(V.to) - new Date(V.from)) / 86400000) + 1 : '';
+      const isMale = V.gender === 'Male';
+      const he = isMale ? 'he' : 'she', He = isMale ? 'He' : 'She';
+      const his = isMale ? 'his' : 'her';
+      /* honour the user's "Other" free text if that option was selected */
+      const purposeText = (V.purpose === 'Other' && V.purposeOther) ? V.purposeOther : (V.purpose || 'the purpose stated');
+      return `
+      <p class="memo-tag">Memo:</p>
+      <p class="body-p">Certified that there is no objection if <b>${V.title||'Miss'} ${ph(V.name,'NAAM')}</b>, ${ph(V.post,'POST')}, working at ${ph(V.school,'SCHOOL')}, Tehsil ${ph(V.tehsil,'TEHSIL')}, District ${ph(V.district,'DISTRICT')}, bearing CNIC No. ${ph(V.cnic,'CNIC')} and Passport No. ${ph(V.passport,'PASSPORT NO')}, proceeds to ${ph(V.country,'COUNTRY')} for <b>${esc(purposeText)}</b> from <b>${V.from?fmtDate(V.from):'<span class="ph">FROM</span>'}</b> to <b>${V.to?fmtDate(V.to):'<span class="ph">TO</span>'}</b>${days?` (${days} days)`:''}.</p>
+      <p class="body-p">Nothing is outstanding against ${his} name in this office. ${He} may be permitted to avail Ex-Pakistan Leave for the above period. This certificate is being issued on ${his} request for whatever legal purpose it may serve.</p>`;
+    },
+    signAs: 'sdeo',
+    endstTo: []  /* user apni copy list khud add karein */
+  },
+
+  'umrah-noc': {
+    title: 'NOC for Ex-Pakistan Leave (Umrah)',
+    subject: 'NO OBJECTION CERTIFICATE FOR EX-PAKISTAN LEAVE',
+    fields: [
+      {id:'name',      label:'Employee Naam',        up:true},
+      {id:'gender',    label:'Gender',               type:'select', options:['Male','Female'], def:'Female'},
+      {id:'post',      label:'Post / BPS',           up:true},
+      {id:'cnic',      label:'CNIC',                 placeholder:'13101-XXXXXXX-X'},
+      {id:'passport',  label:'Passport No.',         up:true},
+      {id:'school',    label:'School',               up:true},
+      {id:'country',   label:'Country',              up:true, def:'SAUDI ARABIA'},
+      {id:'purpose',   label:'Purpose',              up:true, def:'PERFORMANCE OF UMRAH'},
+      {id:'from',      label:'From',                 type:'date'},
+      {id:'to',        label:'To',                   type:'date'},
+    ],
+    body: V => {
+      const days = V.from && V.to ? Math.round((new Date(V.to) - new Date(V.from)) / 86400000) + 1 : '';
+      const he = V.gender === 'Male' ? 'he' : 'she';
+      const his = V.gender === 'Male' ? 'his' : 'her';
+      return `
+      <p class="memo-tag">Memo:</p>
+      <p class="body-p">Certified that there is no objection if ${ph(V.name,'NAAM')} (${ph(V.post,'POST')}) working at ${ph(V.school,'SCHOOL')} bearing CNIC No. ${ph(V.cnic,'CNIC')} and Passport No. ${ph(V.passport,'PASSPORT NO')} proceeds to ${ph(V.country,'COUNTRY')} for ${ph(V.purpose,'PURPOSE')} from ${V.from?fmtDate(V.from):'<span class="ph">FROM</span>'} to ${V.to?fmtDate(V.to):'<span class="ph">TO</span>'}${days?` (${days} days)`:''}.</p>
+      <p class="body-p">Nothing is outstanding against ${his} name in this office, and ${he} may be permitted to avail Ex-Pakistan Leave for the above period.</p>`;
+    },
+    signAs: 'sdeo',
+    endstTo: []  /* user apni copy list khud add karein */
+  },
+
+  'family-visit-noc': {
+    title: 'NOC — Family Visit Abroad',
+    subject: 'NO OBJECTION CERTIFICATE — FAMILY VISIT ABROAD',
+    fields: [
+      {id:'name',      label:'Employee Naam',   up:true},
+      {id:'gender',    label:'Gender',          type:'select', options:['Male','Female'], def:'Female'},
+      {id:'post',      label:'Post / BPS',      up:true},
+      {id:'cnic',      label:'CNIC',            placeholder:'13101-XXXXXXX-X'},
+      {id:'passport',  label:'Passport No.',    up:true},
+      {id:'school',    label:'School',          up:true},
+      {id:'country',   label:'Country',         up:true},
+      {id:'relation',  label:'Kiske Paas Ja Rahe Hain', up:true, placeholder:'BROTHER / DAUGHTER'},
+      {id:'from',      label:'From',            type:'date'},
+      {id:'to',        label:'To',              type:'date'},
+    ],
+    body: V => {
+      const he = V.gender === 'Male' ? 'he' : 'she';
+      const his = V.gender === 'Male' ? 'his' : 'her';
+      return `
+      <p class="memo-tag">Memo:</p>
+      <p class="body-p">Certified that there is no objection if ${ph(V.name,'NAAM')} (${ph(V.post,'POST')}) working at ${ph(V.school,'SCHOOL')} bearing CNIC No. ${ph(V.cnic,'CNIC')} and Passport No. ${ph(V.passport,'PASSPORT NO')} proceeds to ${ph(V.country,'COUNTRY')} for a family visit to ${his} ${ph(V.relation,'RELATION')} from ${V.from?fmtDate(V.from):'<span class="ph">FROM</span>'} to ${V.to?fmtDate(V.to):'<span class="ph">TO</span>'}.</p>
+      <p class="body-p">Nothing is outstanding against ${his} name in this office. ${he.charAt(0).toUpperCase()+he.slice(1)} may be granted Ex-Pakistan Leave for the above period.</p>`;
+    },
+    signAs: 'sdeo',
+    endstTo: []  /* user apni copy list khud add karein */
+  },
+
+  'medical-leave': {
+    title: 'Medical Leave Application',
+    subject: 'APPLICATION FOR MEDICAL LEAVE',
+    fields: [
+      {id:'name',    label:'Aap Ka Naam',    up:true},
+      {id:'post',    label:'Post / BPS',     up:true},
+      {id:'school',  label:'School',         up:true},
+      {id:'illness', label:'Illness / Condition', type:'textarea', placeholder:'brief description'},
+      {id:'from',    label:'From',           type:'date'},
+      {id:'to',      label:'To',             type:'date'},
+    ],
+    body: V => {
+      const days = V.from && V.to ? Math.round((new Date(V.to) - new Date(V.from)) / 86400000) + 1 : '';
+      return `
+      <p class="memo-tag">Respected Sir / Madam,</p>
+      <p class="body-p">With due respect, it is submitted that the undersigned, ${ph(V.name,'NAAM')} (${ph(V.post,'POST')}), presently working at ${ph(V.school,'SCHOOL')}, is unable to attend duty due to ${ph(V.illness,'ILLNESS')}.</p>
+      <p class="body-p">It is therefore humbly requested that <b>${days||'___'} days</b> medical leave from ${V.from?fmtDate(V.from):'<span class="ph">FROM</span>'} to ${V.to?fmtDate(V.to):'<span class="ph">TO</span>'} may kindly be granted. A medical certificate from a registered medical practitioner is attached.</p>`;
+    },
+    signAs: 'employee',
+    endstTo: []  /* user apni copy list khud add karein */
+  },
+
+  'study-leave': {
+    title: 'Study Leave (M.Phil / PhD)',
+    subject: 'APPLICATION FOR STUDY LEAVE',
+    fields: [
+      {id:'name',       label:'Aap Ka Naam',   up:true},
+      {id:'post',       label:'Post / BPS',    up:true},
+      {id:'school',     label:'School',        up:true},
+      {id:'programme',  label:'Programme',     up:true, placeholder:'M.PHIL EDUCATION'},
+      {id:'institute',  label:'University / Institute', up:true},
+      {id:'duration',   label:'Duration',      placeholder:'2 years'},
+      {id:'from',       label:'From',          type:'date'},
+      {id:'to',         label:'To',            type:'date'},
+    ],
+    body: V => `
+      <p class="memo-tag">Respected Sir / Madam,</p>
+      <p class="body-p">With due respect, it is submitted that the undersigned, ${ph(V.name,'NAAM')} (${ph(V.post,'POST')}), presently working at ${ph(V.school,'SCHOOL')}, has been admitted to ${ph(V.programme,'PROGRAMME')} at ${ph(V.institute,'INSTITUTE')}.</p>
+      <p class="body-p">It is therefore humbly requested that study leave for a duration of ${ph(V.duration,'DURATION')} (from ${V.from?fmtDate(V.from):'<span class="ph">FROM</span>'} to ${V.to?fmtDate(V.to):'<span class="ph">TO</span>'}) may kindly be sanctioned under the prevailing rules. The admission letter and fee receipt are attached herewith.</p>`,
+    signAs: 'employee',
+    endstTo: []  /* user apni copy list khud add karein */
+  },
+
+  'leave-encashment': {
+    title: 'Leave Encashment Request',
+    subject: 'REQUEST FOR LEAVE ENCASHMENT (LPR)',
+    fields: [
+      {id:'name',       label:'Employee Naam',    up:true},
+      {id:'post',       label:'Post / BPS',       up:true},
+      {id:'personnel',  label:'Personnel No.',    placeholder:'000000'},
+      {id:'retDate',    label:'Retirement Date',  type:'date'},
+      {id:'lprMonths',  label:'LPR Months',       type:'number', placeholder:'12'},
+    ],
+    body: V => `
+      <p class="memo-tag">Memo:</p>
+      <p class="body-p">The leave encashment (LPR) case of ${ph(V.name,'NAAM')} (${ph(V.post,'POST')}), Personnel No. ${ph(V.personnel,'PERSONNEL NO')}, retiring on ${V.retDate?fmtDate(V.retDate):'<span class="ph">DATE</span>'}, is submitted for your kind approval and further necessary action.</p>
+      <p class="body-p">${ph(V.lprMonths,'___')} months of LPR are due to the said employee under the prevailing rules. All supporting documents (service book, leave account, retirement notification) are attached.</p>`,
+    signAs: 'sdeo',
+    endstTo: []  /* user apni copy list khud add karein */
+  },
+
+  'retirement-proforma': {
+    title: 'Retirement Proforma Submission',
+    subject: 'SUBMISSION OF PROFORMA FOR RETIREMENT & LUMP SUM GRANT CASES',
+    fields: [
+      {id:'name',      label:'Employee Naam',        up:true},
+      {id:'post',      label:'Post / BPS',           up:true},
+      {id:'personnel', label:'Personnel No.',        placeholder:'000000'},
+      {id:'cnic',      label:'CNIC',                 placeholder:'13101-XXXXXXX-X'},
+      {id:'dob',       label:'Date of Birth',        type:'date'},
+      {id:'entry',     label:'Date of Entry',        type:'date'},
+      {id:'retDate',   label:'Retirement Date',      type:'date'},
+      {id:'gpfNo',     label:'GP Fund A/c No.',      placeholder:'____________'},
+    ],
+    body: V => `
+      <p class="memo-tag">Memo:</p>
+      <p class="body-p">The retirement and lump sum grant proforma in respect of ${ph(V.name,'NAAM')} (${ph(V.post,'POST')}), Personnel No. ${ph(V.personnel,'PERSONNEL NO')}, CNIC ${ph(V.cnic,'CNIC')}, is submitted for your kind perusal and further necessary action.</p>
+      <table class="doc-table">
+        <tbody>
+          <tr><td>Date of Birth</td><td>${V.dob?fmtDate(V.dob):'<span class="ph">DOB</span>'}</td>
+              <td>Date of Entry</td><td>${V.entry?fmtDate(V.entry):'<span class="ph">DOE</span>'}</td></tr>
+          <tr><td>Retirement Date</td><td>${V.retDate?fmtDate(V.retDate):'<span class="ph">RETIREMENT</span>'}</td>
+              <td>GP Fund A/c</td><td>${ph(V.gpfNo,'GPF A/C')}</td></tr>
+        </tbody>
+      </table>
+      <p class="body-p">The employee has completed all required service formalities. Attached documents include Service Book, Last Pay Certificate, Medical Fitness Certificate, and Nomination Forms. Kindly process the case at your end.</p>`,
+    signAs: 'sdeo',
+    endstTo: []  /* user apni copy list khud add karein */
+  },
+
+  'family-pension': {
+    title: 'Family Pension Transfer Case',
+    subject: 'FAMILY PENSION TRANSFER CASE',
+    fields: [
+      {id:'deceased',   label:'Deceased Employee Naam',   up:true},
+      {id:'post',       label:'Post / BPS',                up:true},
+      {id:'personnel',  label:'Personnel No.',             placeholder:'000000'},
+      {id:'deathDate',  label:'Date of Death',             type:'date'},
+      {id:'widow',      label:'Widow / Nominee Naam',      up:true},
+      {id:'widowCnic',  label:'Nominee CNIC',              placeholder:'13101-XXXXXXX-X'},
+      {id:'relation',   label:'Relationship',              up:true, def:'WIFE'},
+    ],
+    body: V => `
+      <p class="memo-tag">Memo:</p>
+      <p class="body-p">The family pension transfer case in respect of Late Mr./Mrs. ${ph(V.deceased,'NAAM')} (${ph(V.post,'POST')}), Personnel No. ${ph(V.personnel,'PERSONNEL NO')}, who passed away on ${V.deathDate?fmtDate(V.deathDate):'<span class="ph">DATE OF DEATH</span>'}, is submitted for your kind approval.</p>
+      <p class="body-p">The family pension is to be transferred to <b>${ph(V.widow,'NOMINEE')}</b> (${ph(V.relation,'RELATIONSHIP')}), CNIC ${ph(V.widowCnic,'CNIC')}. All required documents — Death Certificate, Succession Certificate, Nomination Forms, and CNIC copies — are attached herewith.</p>`,
+    signAs: 'sdeo',
+    endstTo: []  /* user apni copy list khud add karein */
+  },
+
+  'lump-sum-grant': {
+    title: 'Lump Sum Grant Case',
+    subject: 'LUMP SUM GRANT CASE',
+    fields: [
+      {id:'name',      label:'Deceased / Retired Employee', up:true},
+      {id:'post',      label:'Post / BPS',                   up:true},
+      {id:'personnel', label:'Personnel No.',                placeholder:'000000'},
+      {id:'refDate',   label:'Retirement / Death Date',      type:'date'},
+      {id:'nominee',   label:'Nominee Naam',                 up:true},
+      {id:'amount',    label:'Amount (Rs)',                  type:'number'},
+    ],
+    body: V => `
+      <p class="memo-tag">Memo:</p>
+      <p class="body-p">The lump sum grant case in respect of ${ph(V.name,'NAAM')} (${ph(V.post,'POST')}), Personnel No. ${ph(V.personnel,'PERSONNEL NO')}, effective ${V.refDate?fmtDate(V.refDate):'<span class="ph">DATE</span>'}, is submitted for your kind approval and payment.</p>
+      <p class="body-p">Nominee: <b>${ph(V.nominee,'NOMINEE')}</b>. Approximate amount: Rs. ${V.amount?parseInt(V.amount).toLocaleString('en-PK'):'<span class="ph">AMOUNT</span>'}/-. All supporting documents are attached herewith.</p>`,
+    signAs: 'sdeo',
+    endstTo: []  /* user apni copy list khud add karein */
+  },
+
+  'conveyance-allowance': {
+    title: 'Conveyance Allowance Request',
+    subject: 'REQUEST FOR CONVEYANCE ALLOWANCE',
+    fields: [
+      {id:'name',      label:'Employee Naam',   up:true},
+      {id:'post',      label:'Post / BPS',      up:true},
+      {id:'personnel', label:'Personnel No.',   placeholder:'000000'},
+      {id:'wef',       label:'W.E.F',           type:'date'},
+      {id:'rate',      label:'Rate (Rs)',       type:'number', placeholder:'2856'},
+    ],
+    body: V => `
+      <p class="memo-tag">Memo:</p>
+      <p class="body-p">The case for grant of Conveyance Allowance in respect of ${ph(V.name,'NAAM')} (${ph(V.post,'POST')}), Personnel No. ${ph(V.personnel,'PERSONNEL NO')}, with effect from ${V.wef?fmtDate(V.wef):'<span class="ph">W.E.F</span>'} at the rate of Rs. ${V.rate?parseInt(V.rate).toLocaleString('en-PK'):'<span class="ph">RATE</span>'}/- per month is submitted for your kind approval and further necessary action.</p>`,
+    signAs: 'sdeo',
+    endstTo: []  /* user apni copy list khud add karein */
+  },
+
+  'ifl-loan': {
+    title: 'Interest-Free Loan Application',
+    subject: 'APPLICATION FOR INTEREST-FREE LOAN SCHEME',
+    fields: [
+      {id:'name',      label:'Employee Naam',   up:true},
+      {id:'post',      label:'Post / BPS',      up:true},
+      {id:'personnel', label:'Personnel No.',   placeholder:'000000'},
+      {id:'cnic',      label:'CNIC',            placeholder:'13101-XXXXXXX-X'},
+      {id:'basicPay',  label:'Basic Pay (Rs)',  type:'number'},
+      {id:'loanAmt',   label:'Loan Amount (Rs)', type:'number'},
+      {id:'purpose',   label:'Purpose',         up:true, placeholder:'HOUSE CONSTRUCTION / MARRIAGE'},
+      {id:'year',      label:'Loan Year',       placeholder:'2024-25'},
+    ],
+    body: V => `
+      <p class="memo-tag">Respected Sir / Madam,</p>
+      <p class="body-p">With due respect, it is submitted that the undersigned, ${ph(V.name,'NAAM')} (${ph(V.post,'POST')}), Personnel No. ${ph(V.personnel,'PERSONNEL NO')}, CNIC ${ph(V.cnic,'CNIC')}, wishes to apply for the Interest-Free Loan Scheme for Provincial Government Employees for the year ${ph(V.year,'YEAR')}.</p>
+      <table class="doc-table">
+        <tbody>
+          <tr><td>Basic Pay</td><td>Rs. ${V.basicPay?parseInt(V.basicPay).toLocaleString('en-PK'):'<span class="ph">BASIC PAY</span>'}/-</td></tr>
+          <tr><td>Loan Amount Applied</td><td>Rs. ${V.loanAmt?parseInt(V.loanAmt).toLocaleString('en-PK'):'<span class="ph">AMOUNT</span>'}/-</td></tr>
+          <tr><td>Purpose</td><td>${ph(V.purpose,'PURPOSE')}</td></tr>
+        </tbody>
+      </table>
+      <p class="body-p">It is therefore humbly requested that the application may kindly be forwarded to the competent authority for further necessary action.</p>`,
+    signAs: 'employee',
+    endstTo: []  /* user apni copy list khud add karein */
+  },
+
+  'hba': {
+    title: 'House Building Advance',
+    subject: 'APPLICATION FOR HOUSE BUILDING ADVANCE',
+    fields: [
+      {id:'name',      label:'Employee Naam',    up:true},
+      {id:'post',      label:'Post / BPS',       up:true},
+      {id:'personnel', label:'Personnel No.',    placeholder:'000000'},
+      {id:'amount',    label:'HBA Amount (Rs)',  type:'number'},
+      {id:'plot',      label:'Property Details', type:'textarea', placeholder:'Plot no., location, area...'},
+    ],
+    body: V => `
+      <p class="memo-tag">Respected Sir / Madam,</p>
+      <p class="body-p">With due respect, it is submitted that the undersigned, ${ph(V.name,'NAAM')} (${ph(V.post,'POST')}), Personnel No. ${ph(V.personnel,'PERSONNEL NO')}, wishes to apply for House Building Advance amounting to Rs. ${V.amount?parseInt(V.amount).toLocaleString('en-PK'):'<span class="ph">AMOUNT</span>'}/-.</p>
+      <p class="body-p">Property details: ${ph(V.plot,'PROPERTY DETAILS')}</p>
+      <p class="body-p">It is requested that the application may kindly be forwarded to the competent authority. All supporting documents (property papers, salary certificate, PIFRA slip) are attached.</p>`,
+    signAs: 'employee',
+    endstTo: []  /* user apni copy list khud add karein */
+  },
+
+  'ta-pol': {
+    title: 'TA & POL Clearance Request',
+    subject: 'REQUEST FOR TA / POL CLEARANCE',
+    fields: [
+      {id:'name',      label:'Employee Naam',   up:true},
+      {id:'post',      label:'Post / BPS',      up:true},
+      {id:'period',    label:'Period',          placeholder:'April 2025 to March 2026'},
+      {id:'amount',    label:'Amount Claimed (Rs)', type:'number'},
+      {id:'purpose',   label:'Purpose',         type:'textarea', placeholder:'Field visits, official tours...'},
+    ],
+    body: V => `
+      <p class="memo-tag">Memo:</p>
+      <p class="body-p">The TA/POL clearance case in respect of ${ph(V.name,'NAAM')} (${ph(V.post,'POST')}) for the period ${ph(V.period,'PERIOD')} is submitted for your kind approval.</p>
+      <p class="body-p">Amount claimed: Rs. ${V.amount?parseInt(V.amount).toLocaleString('en-PK'):'<span class="ph">AMOUNT</span>'}/-<br>Purpose: ${ph(V.purpose,'PURPOSE')}</p>
+      <p class="body-p">All supporting bills, tour approvals, and log book entries are attached herewith.</p>`,
+    signAs: 'sdeo',
+    endstTo: []  /* user apni copy list khud add karein */
+  },
+
+  'fund-allocation': {
+    title: 'Allocation of Fund Request',
+    subject: 'ALLOCATION OF FUND UNDER HEAD',
+    fields: [
+      {id:'head',      label:'Head of Account', up:true, placeholder:'A04114-SE/LPR'},
+      {id:'amount',    label:'Amount (Rs)',     type:'number'},
+      {id:'purpose',   label:'Purpose',         type:'textarea', placeholder:'Purpose ke details...'},
+      {id:'fyYear',    label:'Financial Year',  placeholder:'2024-25'},
+    ],
+    body: V => `
+      <p class="memo-tag">Memo:</p>
+      <p class="body-p">The subject case is submitted for kind allocation of Rs. ${V.amount?parseInt(V.amount).toLocaleString('en-PK'):'<span class="ph">AMOUNT</span>'}/- under head <b>${ph(V.head,'HEAD OF ACCOUNT')}</b> for the financial year ${ph(V.fyYear,'FY')} in respect of this office.</p>
+      <p class="body-p">Purpose / Justification: ${ph(V.purpose,'PURPOSE')}</p>
+      <p class="body-p">It is therefore humbly requested that the required fund may kindly be allocated to this office at your earliest convenience.</p>`,
+    signAs: 'sdeo',
+    endstTo: []  /* user apni copy list khud add karein */
+  },
+
+  'departmental-permission': {
+    title: 'Departmental Permission',
+    subject: 'DEPARTMENTAL PERMISSION',
+    fields: [
+      {id:'name',    label:'Employee Naam',    up:true},
+      {id:'post',    label:'Post / BPS',       up:true},
+      {id:'purpose', label:'Purpose / Kis Ke Liye Permission', type:'textarea', placeholder:'higher studies / private business / court appearance...'},
+      {id:'period',  label:'Period',           placeholder:'2 years / permanent'},
+    ],
+    body: V => `
+      <p class="memo-tag">Memo:</p>
+      <p class="body-p">The case for grant of departmental permission in respect of ${ph(V.name,'NAAM')} (${ph(V.post,'POST')}) is submitted for your kind perusal.</p>
+      <p class="body-p">Purpose: ${ph(V.purpose,'PURPOSE')}<br>Period: ${ph(V.period,'PERIOD')}</p>
+      <p class="body-p">It is therefore humbly requested that the departmental permission may kindly be granted under the prevailing rules and orders.</p>`,
+    signAs: 'sdeo',
+    endstTo: []  /* user apni copy list khud add karein */
+  },
+
+  'duplicate-service-book': {
+    title: 'Duplicate Service Book Request',
+    subject: 'REQUEST FOR ISSUANCE OF DUPLICATE SERVICE BOOK',
+    fields: [
+      {id:'name',      label:'Employee Naam',     up:true},
+      {id:'post',      label:'Post / BPS',        up:true},
+      {id:'personnel', label:'Personnel No.',     placeholder:'000000'},
+      {id:'reason',    label:'Reason',            type:'textarea', placeholder:'lost / damaged / misplaced'},
+      {id:'firNo',     label:'FIR No. (if any)',  placeholder:'FIR ______'},
+    ],
+    body: V => `
+      <p class="memo-tag">Respected Sir / Madam,</p>
+      <p class="body-p">With due respect, it is submitted that the Service Book of ${ph(V.name,'NAAM')} (${ph(V.post,'POST')}), Personnel No. ${ph(V.personnel,'PERSONNEL NO')}, has been lost/damaged. Details are as under:</p>
+      <p class="body-p">Reason: ${ph(V.reason,'REASON')}<br>${V.firNo?'FIR Reference: '+esc(V.firNo)+'<br>':''}</p>
+      <p class="body-p">It is therefore humbly requested that a duplicate Service Book may kindly be issued at the earliest so that service records remain complete.</p>`,
+    signAs: 'employee',
+    endstTo: []  /* user apni copy list khud add karein */
+  },
+
+  'ddo-authority': {
+    title: 'DDO Ship Authority',
+    subject: 'DDO SHIP AUTHORITY',
+    fields: [
+      {id:'authName',   label:'Authorised Person Naam', up:true},
+      {id:'authPost',   label:'Authorised Post',        up:true},
+      {id:'wef',        label:'W.E.F',                  type:'date'},
+      {id:'reason',     label:'Reason',                 type:'textarea', placeholder:'DDO ke chhutti/transfer/absence ki wajah'},
+    ],
+    body: V => `
+      <p class="memo-tag">Memo:</p>
+      <p class="body-p">In pursuance of the powers vested in the undersigned, ${ph(V.authName,'AUTHORISED PERSON')} (${ph(V.authPost,'POST')}) is hereby authorised to act as DDO of this office with effect from ${V.wef?fmtDate(V.wef):'<span class="ph">W.E.F</span>'} until further orders.</p>
+      <p class="body-p">Reason: ${ph(V.reason,'REASON')}</p>
+      <p class="body-p">The authorised officer shall exercise all financial powers vested in the DDO under the prevailing rules and shall be responsible for the same.</p>`,
+    signAs: 'sdeo',
+    endstTo: []  /* user apni copy list khud add karein */
+  },
+
+  'dob-correction': {
+    title: 'Date of Birth Correction',
+    subject: 'CORRECTION IN DATE OF BIRTH',
+    fields: [
+      {id:'name',      label:'Employee Naam',   up:true},
+      {id:'post',      label:'Post / BPS',      up:true},
+      {id:'personnel', label:'Personnel No.',   placeholder:'000000'},
+      {id:'wrongDob',  label:'Wrong DOB (in record)', type:'date'},
+      {id:'correctDob',label:'Correct DOB',           type:'date'},
+      {id:'proof',     label:'Proof Document',   placeholder:'Matric certificate / CNIC / birth certificate'},
+    ],
+    body: V => `
+      <p class="memo-tag">Memo:</p>
+      <p class="body-p">The case for correction of Date of Birth in respect of ${ph(V.name,'NAAM')} (${ph(V.post,'POST')}), Personnel No. ${ph(V.personnel,'PERSONNEL NO')}, is submitted for your kind approval.</p>
+      <table class="doc-table">
+        <tbody>
+          <tr><td>Existing DOB (Record)</td><td>${V.wrongDob?fmtDate(V.wrongDob):'<span class="ph">WRONG DOB</span>'}</td></tr>
+          <tr><td>Correct DOB</td><td><b>${V.correctDob?fmtDate(V.correctDob):'<span class="ph">CORRECT DOB</span>'}</b></td></tr>
+          <tr><td>Proof Document</td><td>${ph(V.proof,'PROOF')}</td></tr>
+        </tbody>
+      </table>
+      <p class="body-p">Attested copies of all supporting documents are attached herewith. Kindly do the needful.</p>`,
+    signAs: 'sdeo',
+    endstTo: []  /* user apni copy list khud add karein */
+  },
+
+  'name-correction': {
+    title: 'Father Name / Name Correction',
+    subject: 'CORRECTION IN FATHER NAME / NAME',
+    fields: [
+      {id:'name',      label:'Employee Naam',       up:true},
+      {id:'post',      label:'Post / BPS',          up:true},
+      {id:'personnel', label:'Personnel No.',       placeholder:'000000'},
+      {id:'wrongName', label:'Wrong Name (in record)', up:true},
+      {id:'correct',   label:'Correct Name',        up:true},
+      {id:'proof',     label:'Proof Document',      placeholder:'CNIC / Matric certificate / birth certificate'},
+    ],
+    body: V => `
+      <p class="memo-tag">Memo:</p>
+      <p class="body-p">The case for correction of name in respect of ${ph(V.name,'NAAM')} (${ph(V.post,'POST')}), Personnel No. ${ph(V.personnel,'PERSONNEL NO')}, is submitted for your kind approval.</p>
+      <table class="doc-table">
+        <tbody>
+          <tr><td>Existing (Record)</td><td>${ph(V.wrongName,'WRONG NAME')}</td></tr>
+          <tr><td>Correct</td><td><b>${ph(V.correct,'CORRECT NAME')}</b></td></tr>
+          <tr><td>Proof Document</td><td>${ph(V.proof,'PROOF')}</td></tr>
+        </tbody>
+      </table>
+      <p class="body-p">Attested copies of all supporting documents are attached herewith. Kindly issue corrigendum accordingly.</p>`,
+    signAs: 'sdeo',
+    endstTo: []  /* user apni copy list khud add karein */
+  },
+
+  'authority-cheque': {
+    title: 'Authority Letter — Cheque Book',
+    subject: 'AUTHORITY LETTER FOR CHEQUE BOOK',
+    fields: [
+      {id:'bank',       label:'Bank Naam',        up:true, placeholder:'BANK OF KHYBER'},
+      {id:'branch',     label:'Branch',           up:true},
+      {id:'accountNo',  label:'Account No.',      placeholder:'PK07KHYB0113000020540000'},
+      {id:'authName',   label:'Authorised Person',up:true},
+      {id:'authCnic',   label:'CNIC',             placeholder:'13101-XXXXXXX-X'},
+    ],
+    body: V => `
+      <p class="memo-tag">Memo:</p>
+      <p class="body-p">${ph(V.authName,'AUTHORISED PERSON')}, holder of CNIC No. ${ph(V.authCnic,'CNIC')}, is hereby authorised on behalf of this office to collect a cheque book from ${ph(V.bank,'BANK')}, ${ph(V.branch,'BRANCH')} branch, in respect of Account No. ${ph(V.accountNo,'ACCOUNT NO')}.</p>
+      <p class="body-p">The signatures of the authorised person are attested below for verification.</p>
+      <p style="margin-top:36px;">Specimen Signature: __________________________________</p>`,
+    signAs: 'sdeo',
+    endstTo: []  /* user apni copy list khud add karein */
+  },
+
+  'explanation-reply': {
+    title: 'Explanation / Reply',
+    subject: 'REPLY OF EXPLANATION',
+    fields: [
+      {id:'refNo',     label:'Reference No. (Explanation received)', placeholder:'____________'},
+      {id:'refDate',   label:'Reference Date',                       type:'date'},
+      {id:'name',      label:'Aap Ka Naam',                          up:true},
+      {id:'post',      label:'Post / BPS',                           up:true},
+      {id:'allegation',label:'Allegation Ka Zikar',                  type:'textarea', placeholder:'jo allegation lagaya gaya hai'},
+      {id:'reply',     label:'Aapka Jawab',                          type:'textarea', placeholder:'wafi tafsili jawab'},
+    ],
+    body: V => `
+      <p class="memo-tag">Reference:</p>
+      <p class="body-p">Your office letter No. ${ph(V.refNo,'REF NO')} dated ${V.refDate?fmtDate(V.refDate):'<span class="ph">REF DATE</span>'} on the subject cited above.</p>
+      <p class="memo-tag">Memo:</p>
+      <p class="body-p">With due respect, it is submitted in reply to the explanation called by your office regarding ${ph(V.allegation,'ALLEGATION')}:</p>
+      <p class="body-p">${ph(V.reply,'AAP KA JAWAB')}</p>
+      <p class="body-p">It is therefore humbly requested that the above facts may kindly be considered and the matter may be dropped in favour of the undersigned.</p>`,
+    signAs: 'employee',
+    endstTo: []  /* user apni copy list khud add karein */
+  },
+
+  'show-cause-reply': {
+    title: 'Show Cause Response',
+    subject: 'REPLY TO SHOW CAUSE NOTICE',
+    fields: [
+      {id:'refNo',     label:'Show Cause No.',    placeholder:'____________'},
+      {id:'refDate',   label:'Show Cause Date',   type:'date'},
+      {id:'name',      label:'Aap Ka Naam',       up:true},
+      {id:'post',      label:'Post / BPS',        up:true},
+      {id:'chargeSum', label:'Charge Ka Khulasa', type:'textarea'},
+      {id:'reply',     label:'Aap Ka Jawab',      type:'textarea'},
+    ],
+    body: V => `
+      <p class="memo-tag">Reference:</p>
+      <p class="body-p">Show Cause Notice No. ${ph(V.refNo,'REF NO')} dated ${V.refDate?fmtDate(V.refDate):'<span class="ph">REF DATE</span>'}.</p>
+      <p class="memo-tag">Memo:</p>
+      <p class="body-p">Respectfully, this is submitted in reply to the show cause notice on the following charge:</p>
+      <p class="body-p"><i>${ph(V.chargeSum,'CHARGE')}</i></p>
+      <p class="body-p">${ph(V.reply,'REPLY')}</p>
+      <p class="body-p">In view of the above, it is humbly prayed that the show cause notice may kindly be withdrawn and the matter may be dropped in favour of the undersigned.</p>`,
+    signAs: 'employee',
+    endstTo: []  /* user apni copy list khud add karein */
+  },
+
+  'absence-reply': {
+    title: 'Absence Explanation Reply',
+    subject: 'REPLY REGARDING ABSENCE FROM DUTY',
+    fields: [
+      {id:'refNo',    label:'Absent Report No.',       placeholder:'____________'},
+      {id:'refDate',  label:'Report Date',             type:'date'},
+      {id:'name',     label:'Aap Ka Naam',             up:true},
+      {id:'post',     label:'Post / BPS',              up:true},
+      {id:'absFrom',  label:'Ghair Hazir From',        type:'date'},
+      {id:'absTo',    label:'Ghair Hazir To',          type:'date'},
+      {id:'reason',   label:'Wajah',                   type:'textarea', placeholder:'illness / emergency / natural calamity'},
+    ],
+    body: V => `
+      <p class="memo-tag">Reference:</p>
+      <p class="body-p">Your office letter No. ${ph(V.refNo,'REF NO')} dated ${V.refDate?fmtDate(V.refDate):'<span class="ph">REF DATE</span>'}.</p>
+      <p class="memo-tag">Memo:</p>
+      <p class="body-p">With due respect, it is submitted that the undersigned, ${ph(V.name,'NAAM')} (${ph(V.post,'POST')}), remained absent from duty from ${V.absFrom?fmtDate(V.absFrom):'<span class="ph">FROM</span>'} to ${V.absTo?fmtDate(V.absTo):'<span class="ph">TO</span>'} due to the following unavoidable circumstances:</p>
+      <p class="body-p">${ph(V.reason,'WAJAH')}</p>
+      <p class="body-p">The absence was unintentional and beyond the control of the undersigned. It is therefore humbly requested that the absence may kindly be condoned by counting the said period against admissible leave, and the matter may be dropped.</p>`,
+    signAs: 'employee',
+    endstTo: []  /* user apni copy list khud add karein */
+  },
+
+  'audit-note-reply': {
+    title: 'Audit Note Reply',
+    subject: 'REPLY OF AUDIT NOTE',
+    fields: [
+      {id:'auditNo',   label:'Audit Para / Note No.',   placeholder:'Audit Para ______'},
+      {id:'auditYear', label:'Audit Year',              placeholder:'2023-2024'},
+      {id:'observation', label:'Audit Observation (Khulasa)', type:'textarea'},
+      {id:'reply',     label:'Office Ka Jawab',         type:'textarea'},
+    ],
+    body: V => `
+      <p class="memo-tag">Reference:</p>
+      <p class="body-p">${ph(V.auditNo,'AUDIT NOTE')} for the year ${ph(V.auditYear,'AUDIT YEAR')}.</p>
+      <p class="memo-tag">Audit Observation:</p>
+      <p class="body-p"><i>${ph(V.observation,'OBSERVATION')}</i></p>
+      <p class="memo-tag">Reply:</p>
+      <p class="body-p">${ph(V.reply,'REPLY')}</p>
+      <p class="body-p">In view of the above facts and supporting documents attached herewith, it is humbly requested that the audit para may kindly be settled / dropped.</p>`,
+    signAs: 'sdeo',
+    endstTo: []  /* user apni copy list khud add karein */
+  },
+};
+
+/* ═══════════ SIGNATURE BLOCKS ═══════════ */
+function signatureBlock(sig){
+  const officeLine = v('fromOffice') ? esc(v('fromOffice')) : '<span class="ph">OFFICE NAME</span>';
+  if(sig === 'employee'){
+    /* an employee-authored letter (application) shows Yours obediently, not the office stamp */
+    return `<div class="doc-signature">
+      Yours obediently,<br><br><br>
+      <b>___________________________</b>
+      <div style="font-size:10pt;color:#555;margin-top:2px;">(Applicant / Employee)</div>
+    </div>`;
+  }
+  if(sig === 'headmaster'){
+    return `<div class="doc-signature">
+      <b>HEAD TEACHER / HEAD MISTRESS</b>
+      <div style="font-size:10pt;color:#555;">${officeLine}</div>
+    </div>`;
+  }
+  /* default: office head signature block */
+  return `<div class="doc-signature">
+      <b>${officeLine}</b>
+    </div>`;
+}
+
+/* ═══════════ REPEATABLE ROWS (used by transfer proposal) ═══════════ */
+let listRows = [{}];
+function addRow(){ listRows.push({}); renderListRows(); render(); }
+function rmRow(i){ listRows.splice(i,1); if(!listRows.length) listRows=[{}]; renderListRows(); render(); }
+function updRow(i,k,val){ listRows[i][k] = val; render(); }
+function renderListRows(){
+  const wrap = $('rowsWrap');
+  const tpl = TEMPLATES[currentTpl];
+  if(!wrap || !tpl?.rows) return;
+  wrap.innerHTML = listRows.map((r,i)=>`
+    <div class="row-card">
+      ${listRows.length>1?`<button class="rm" onclick="rmRow(${i})" title="Hataayein">×</button>`:''}
+      <div class="row-num">ROW ${String(i+1).padStart(2,'0')}</div>
+      ${tpl.rows.cols.map(c=>`
+        <div class="f">
+          <label>${c.label}</label>
+          <input value="${esc(r[c.id]||'')}" placeholder="${c.placeholder||''}"
+                 oninput="${c.up?'this.value=this.value.toUpperCase();':''}updRow(${i},'${c.id}',this.value)">
+        </div>`).join('')}
+    </div>`).join('');
+}
+
+/* ═══════════ TEMPLATE PICKER ═══════════ */
+let currentTpl = 'expak-noc';
+function templateChanged(){
+  currentTpl = v('tpl');
+  buildDynFields();
+  render();
+}
+function buildDynFields(){
+  const tpl = TEMPLATES[currentTpl];
+  $('pvTitle').textContent = tpl.title;
+
+  const parts = [];
+
+  /* the specific input fields */
+  if(tpl.fields && tpl.fields.length){
+    parts.push(`<div class="fs"><div class="fs-title">${tpl.title} — Details</div>`);
+    tpl.fields.forEach(f=>{
+      const val = f.def || '';
+      let inp;
+      if(f.type === 'select'){
+        inp = `<select id="f_${f.id}" onchange="render()">
+          ${f.options.map(o=>`<option value="${esc(o)}" ${o===val?'selected':''}>${esc(o)}</option>`).join('')}
+        </select>`;
+      } else if(f.type === 'textarea'){
+        inp = `<textarea id="f_${f.id}" placeholder="${f.placeholder||''}" oninput="render()">${esc(val)}</textarea>`;
+      } else if(f.type === 'date' || f.type === 'number'){
+        inp = `<input type="${f.type}" id="f_${f.id}" value="${val}" placeholder="${f.placeholder||''}" oninput="render()">`;
+      } else {
+        inp = `<input id="f_${f.id}" value="${val}" placeholder="${f.placeholder||''}" oninput="${f.up?'upc(this);':''}render()">`;
+      }
+      parts.push(`<div class="f"><label>${f.label}</label>${inp}</div>`);
+    });
+    parts.push(`</div>`);
+  }
+
+  /* repeatable rows (for transfer proposal etc.) */
+  if(tpl.rows){
+    listRows = [{}];  /* reset when switching templates */
+    parts.push(`<div class="fs">
+      <div class="fs-title">${tpl.rows.label}</div>
+      <div id="rowsWrap"></div>
+      <button class="btn btn--add" onclick="addRow()">${tpl.rows.addLabel}</button>
+    </div>`);
+  }
+
+  $('dynFields').innerHTML = parts.join('');
+  if(tpl.rows) renderListRows();
+}
+
+/* pulls values back out of the dynamic fields into a plain object */
+function collect(){
+  const tpl = TEMPLATES[currentTpl];
+  const V = {};
+  (tpl.fields||[]).forEach(f=>{ V[f.id] = v('f_'+f.id); });
+  return V;
+}
+
+/* ═══════════ RENDER ═══════════ */
+
+function render(){
+  const tpl = TEMPLATES[currentTpl];
+  const V = collect();
+  const rows = tpl.rows ? listRows.filter(r => Object.values(r).some(x=>x && x.trim())) : [];
+
+  const officeLine = v('fromOffice') ? esc(v('fromOffice')) : '<span class="ph">OFFICE OF THE ______________________</span>';
+  const emailLine  = v('fromEmail')  ? `<div class="doc-email">✉ ${esc(v('fromEmail'))}</div>` : '';
+  /* Recipient: if user typed one, escape it. Otherwise show the styled placeholder as raw HTML. */
+  const to = v('toName') ? esc(v('toName')) : '<span class="ph">RECIPIENT OFFICER</span>';
+  const toAddr = v('toAddress') ? esc(v('toAddress')) : '';
+
+  const bodyHtml = tpl.body(V, rows);
+
+  $('doc').innerHTML = `
+    <div class="doc-head">
+      <div class="doc-office">${officeLine}</div>
+      ${emailLine}
+    </div>
+
+    <div class="doc-meta">
+      <span class="no"><b>No.</b> ${v('letterNo') || '________________'}</span>
+      <span class="dt"><b>Dated:</b> ${v('letterDate') ? fmtDate(v('letterDate')) : '________________'}</span>
+    </div>
+
+    <div class="to-block">
+      To,<br>
+      <b>${to}</b>
+      ${toAddr ? '<br>'+toAddr : ''}
+    </div>
+
+    <div class="subject">Subject: <span>${esc(tpl.subject)}</span></div>
+
+    ${bodyHtml}
+
+    ${signatureBlock(tpl.signAs)}
+
+    <div class="endst">
+      <div class="endst-line">
+        <span><b>Endst: No.</b> ________________</span>
+        <span><b>Dated:</b> ${v('letterDate') ? fmtDate(v('letterDate')) : '________________'}</span>
+      </div>
+      ${(() => {
+        /* prefer the user's typed list; ignore the template's (now empty) default */
+        const userList = v('copyList').split('\n').map(s => s.trim()).filter(Boolean);
+        if(!userList.length) return '<div class="endst-copy" style="color:#888;font-style:italic;font-weight:400;">Copy forwarded to: <span class="ph">form mein add karein</span></div>';
+        return `<div class="endst-copy">Copy forwarded to:</div>
+        <ol class="endst-list">
+          ${userList.map(x => `<li>${esc(x)}</li>`).join('')}
+        </ol>`;
+      })()}
+    </div>`;
+}
+
+/* ═══════════ RESET ═══════════ */
+function resetAll(){
+  document.querySelectorAll('.form-panel input, .form-panel textarea').forEach(el=>{
+    if(el.type === 'checkbox') el.checked = false; else el.value = '';
+  });
+  document.querySelectorAll('.form-panel select').forEach(el=>{
+    if(el.id !== 'tpl') el.selectedIndex = 0;
+  });
+  listRows = [{}];
+  setDefaults();
+  buildDynFields();
+  render();
+}
+function setDefaults(){
+  $('letterDate').value = new Date().toISOString().slice(0,10);
+  /* office/recipient are left blank so users fill in their own */
+  
+  
+}
+
+/* ═══════════ INIT ═══════════ */
+setDefaults();
+buildDynFields();
+render();
+</script>
+</body>
+</html>
