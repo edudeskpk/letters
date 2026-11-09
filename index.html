@@ -36,8 +36,8 @@ a{color:inherit;text-decoration:none;}
 .back-link:hover{color:var(--red);}
 
 /* ── layout ── */
-.page{display:grid;grid-template-columns:420px 1fr;min-height:calc(100vh - 63px - var(--ed-bar-h, 0px));}
-@media(max-width:1000px){.page{grid-template-columns:1fr;}}
+.ed-page{display:grid;grid-template-columns:420px 1fr;min-height:calc(100vh - 63px - var(--ed-bar-h, 0px));}
+@media(max-width:1000px){.ed-page{grid-template-columns:1fr;}}
 
 /* ── form panel ── */
 .form-panel{
@@ -270,7 +270,7 @@ table.chk-t td.tick{width:52px;}
 /* ── print ── */
 @media print{
   .site-header,.form-panel,.pv-head{display:none!important;}
-  .page{display:block;}
+  .ed-page{display:block;}
   .preview-panel{padding:0;overflow:visible;}
   .doc{border:none;box-shadow:none;padding:0;max-width:100%;font-size:11.5pt;}
   body{background:#fff;}
@@ -357,6 +357,75 @@ table.chk-t td.tick{width:52px;}
 <body>
 <script>window.ED_TOOL='letters'; window.ED_LABEL='KPK Letter Bank';</script>
 <!-- ══ EduDesk shared brand bar — identical in all five generators ══ -->
+<style id="ed-bar-css">
+.ed-bar{position:sticky;top:0;z-index:100;display:flex;align-items:center;gap:18px;
+  flex-wrap:wrap;padding:14px 28px;
+  background:rgba(242,236,220,.88);
+  -webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);
+  border-bottom:3px double var(--red,#9E2B25);transition:box-shadow .3s;}
+.ed-bar.scrolled{box-shadow:0 8px 30px -12px rgba(27,42,74,.25);}
+.ed-brand{display:flex;align-items:center;gap:12px;text-decoration:none;color:inherit;flex:none;}
+.ed-brand svg{width:46px;height:46px;flex:none;border-radius:50%;
+  box-shadow:var(--shadow-1,0 2px 6px rgba(27,42,74,.08)),inset 0 -2px 4px rgba(27,42,74,.1);
+  transition:transform .4s cubic-bezier(.2,.7,.3,1.4);}
+.ed-brand:hover svg{transform:rotate(-12deg) scale(1.08);}
+.ed-brand strong{display:block;font-family:'Fraunces',Georgia,serif;font-size:20px;
+  font-weight:700;color:var(--ink,#1B2A4A);line-height:1.1;}
+.ed-brand small{display:block;font-size:10px;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--ink-soft,#46557A);}
+.ed-now{flex:1;min-width:120px;font-family:'Fraunces',Georgia,serif;font-size:16px;
+  font-weight:600;color:var(--ink,#1B2A4A);}
+.ed-jump{position:relative;flex:none;}
+.ed-jump input{width:185px;padding:10px 14px;font:inherit;font-size:13px;font-weight:500;
+  color:var(--ink,#1B2A4A);background:rgba(255,255,255,.75);
+  border:1px solid var(--paper-line,#DCCEAE);border-radius:var(--r-s,4px);}
+.ed-jump input::placeholder{color:var(--ink-soft,#46557A);opacity:.75;}
+.ed-jump input:focus{outline:3px solid var(--gold,#A6792B);outline-offset:2px;background:#fff;}
+.ed-jump ul{position:absolute;right:0;top:calc(100% + 8px);margin:0;padding:5px;list-style:none;
+  background:var(--paper,#F2ECDC);border:1px solid var(--paper-line,#DCCEAE);
+  border-top:3px double var(--red,#9E2B25);border-radius:var(--r-s,4px);min-width:238px;
+  max-height:320px;overflow:auto;
+  box-shadow:var(--shadow-2,0 10px 30px -8px rgba(27,42,74,.22));display:none;z-index:110;}
+.ed-jump ul.on{display:block;}
+.ed-jump li a{display:block;padding:9px 12px;font-size:13.5px;font-weight:600;
+  text-decoration:none;color:var(--ink-soft,#46557A);border-radius:var(--r-s,4px);
+  transition:background .15s,color .15s;}
+.ed-jump li a:hover,.ed-jump li a.sel{background:rgba(158,43,37,.09);color:var(--red,#9E2B25);}
+.ed-wa{flex:none;display:inline-flex;align-items:center;gap:9px;text-decoration:none;
+  padding:10px 18px;font-size:13px;font-weight:700;border-radius:var(--r-s,4px);
+  color:var(--paper,#F2ECDC);
+  background:linear-gradient(180deg,#24365d 0%,var(--ink,#1B2A4A) 60%,#121e38 100%);
+  box-shadow:0 5px 0 0 #101a30,0 12px 24px -8px rgba(27,42,74,.5);
+  transition:transform .18s ease,box-shadow .18s ease;}
+.ed-wa:hover{transform:translateY(-3px);
+  box-shadow:0 8px 0 0 #101a30,0 18px 30px -8px rgba(27,42,74,.55);}
+.ed-wa:focus-visible{outline:3px solid var(--gold,#A6792B);outline-offset:3px;}
+/* Phone: exactly two rows. Brand + WhatsApp on the first; tool name + search on
+   the second. The name is given a flex-basis wide enough that it and the search
+   box cannot fit beside the brand, which is what forces the clean break — and
+   every text box is allowed to ellipsis so nothing can overflow its slot. */
+@media (max-width:720px){
+  .ed-bar{gap:10px 12px;padding:10px 16px;}
+  .ed-brand{order:1;flex:1 1 auto;min-width:0;gap:10px;}
+  .ed-brand > span{min-width:0;}
+  .ed-brand svg{width:38px;height:38px;}
+  .ed-brand strong{font-size:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .ed-brand small{display:none;}
+  .ed-wa{order:2;flex:0 0 auto;padding:9px 14px;font-size:12.5px;}
+  /* basis small enough that the name and the search box share row two, but the
+     pair is still too wide to join the brand on row one */
+  .ed-now{order:3;flex:1 1 38%;min-width:0;font-size:13.5px;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .ed-jump{order:4;flex:0 0 auto;}
+  .ed-jump input{width:144px;padding:8px 12px;}
+  .ed-jump ul{min-width:min(260px,calc(100vw - 32px));}
+}
+@media (max-width:360px){
+  .ed-brand strong{font-size:15.5px;}
+  .ed-jump input{width:124px;}
+}
+@media print{.ed-bar{display:none!important;}}
+</style>
 <div class="ed-bar">
   <a class="ed-brand" href="https://edudesk.pk" target="_blank" rel="noopener">
     <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="EduDesk.pk">
@@ -385,48 +454,98 @@ table.chk-t td.tick{width:52px;}
         <rect x="5"   y="-2" width="9" height="4" fill="#9E2B25"/>
       </g>
     </svg>
-    <span>
-      <strong>EduDesk.pk</strong>
-      <small>KPK Government Schools</small>
-    </span>
+    <span><strong>EduDesk.pk</strong><small>KPK Government Schools</small></span>
   </a>
-  <nav class="ed-tools" aria-label="EduDesk generators">
-    <a class="ed-tool" data-tool="index"  href="index.html" title="Saare tools aur tareeqa">☰ Saare Tools</a>
-    <a class="ed-tool" data-tool="budget"  href="budget-generator.html">Budget</a>
-    <a class="ed-tool" data-tool="payroll" href="payroll-forms-generator.html">Payroll Forms</a>
-    <a class="ed-tool" data-tool="salary"  href="salary-calculator.html">Pay Fixation</a>
-    <a class="ed-tool" data-tool="lpc"     href="lpc-generator.html">LPC</a>
-    <a class="ed-tool" data-tool="certs"   href="certificates-generator.html">Certificates</a>
-    <a class="ed-tool" data-tool="verify"  href="document-verification.html">Verification</a>
-    <a class="ed-tool" data-tool="funds"   href="funds-case-builder.html">B.F / E.E.F</a>
-    <a class="ed-tool" data-tool="gpf"     href="gpf-generator.html">GPF</a>
-    <a class="ed-tool" data-tool="pension" href="pension-generator.html">Pension</a>
-    <a class="ed-tool" data-tool="leave"   href="leave-generator.html">Leave</a>
-    <a class="ed-tool" data-tool="ta"      href="ta-bill-generator.html">T.A Bill</a>
-    <a class="ed-tool" data-tool="tax"     href="tax-portal-builder.html">Tax Portal</a>
-    <a class="ed-tool" data-tool="gpfbal"  href="gpf-balance-portal-builder.html">GPF Portal</a>
-    <a class="ed-tool" data-tool="letters" href="letter-bank.html">Letter Bank</a>
-  </nav>
-  <div class="ed-live" aria-label="EduDesk online tools">
-    <a href="https://payslip.edudesk.pk/" target="_blank" rel="noopener">Salary Slip</a>
-    <a href="https://edudesk.pk/kpk-salary-calculator" target="_blank" rel="noopener">Salary Calculator</a>
-    <a href="https://expenditure.edudesk.pk/" target="_blank" rel="noopener">Expenditure</a>
-  </div>
-  <a class="ed-home" href="https://wa.me/923117675777" target="_blank" rel="noopener">WhatsApp Support</a>
+  <span class="ed-now" id="ed-now"></span>
+  <span class="ed-jump">
+    <input id="ed-jump-in" type="search" placeholder="Tool dhoondein…" autocomplete="off"
+           aria-label="Search tools">
+    <ul id="ed-jump-list"></ul>
+  </span>
+  <a class="ed-wa" href="https://wa.me/923117675777" target="_blank" rel="noopener">WhatsApp</a>
 </div>
-<script>
-/* Mark the current tool and make its chip inert. __ED_TOOL__ is set per file. */
+<script id="ed-bar-js">
 (function(){
-  var me = window.ED_TOOL;
-  if(me){
-    var a = document.querySelector('.ed-tool[data-tool="'+me+'"]');
-    if(a){ a.classList.add('is-current'); a.removeAttribute('href'); }
+  /* one shared list — if it changes, change it in every tool file at once */
+  var TOOLS = [["index.html","Saare Tools","hub home index sab"],["budget-generator.html","Budget","budget sanction allocation"],["payroll-forms-generator.html","Payroll Forms","payroll pay01 fo2 fo3 source"],["ac-bill-generator.html","A.C Bill","ac bill claim voucher contingent abstract"],["receipt-statement-generator.html","Receipt Statement","receipt challan fee tuition"],["expenditure-statement-generator.html","Expenditure Statement","expenditure reconciled monthly"],["salary-calculator.html","Pay Fixation","salary pay fixation calculator scale"],["lpc-generator.html","L.P.C","lpc last pay certificate"],["certificates-generator.html","Certificates","certificate service noc"],["document-verification.html","Verification","verification board university degree"],["funds-case-builder.html","B.F / E.E.F / RB&DC","benevolent eef rbdc fund case death"],["gpf-generator.html","GPF","gpf general provident fund advance"],["pension-generator.html","Pension","pension retirement lpr commutation family"],["leave-generator.html","Leave & Encashment","leave encashment lpr account casual earned"],["ta-bill-generator.html","T.A Bill","ta travelling allowance tour"],["tax-portal-builder.html","Tax Portal","tax income portal"],["gpf-balance-portal-builder.html","GPF Portal","gpf balance portal"],["letter-bank.html","Letter Bank","letter bank office correspondence"]];
+
+  var bar = document.querySelector('.ed-bar');
+
+  /* The layout sizes itself against the bar height (calc(100vh - --ed-bar-h)).
+     This was in the old bar script and is still needed, so it moved here.
+     A plain resize listener can read the height before the media query has
+     relaid the bar out, which leaves a stale value; observe the bar itself. */
+  function sync(){
+    if (bar) document.documentElement.style.setProperty('--ed-bar-h', bar.offsetHeight + 'px');
   }
-  /* the bar's second line names the tool you are in */
-  if(window.ED_LABEL){
-    var s = document.querySelector('.ed-brand small');
-    if(s) s.textContent = window.ED_LABEL;
+  sync();
+  /* read after the browser has relaid out, not during the resize event */
+  function syncSoon(){
+    requestAnimationFrame(function(){ requestAnimationFrame(sync); });
   }
+  if (bar && window.ResizeObserver) { new ResizeObserver(sync).observe(bar); }
+  window.addEventListener('resize', syncSoon);
+  window.addEventListener('orientationchange', syncSoon);
+  window.addEventListener('load', sync);
+
+  /* The homepage header gains a shadow once the page is scrolled. Most tools
+     fill the viewport and scroll an inner panel rather than the window, so
+     watch both. */
+  function onScroll(e){
+    if (!bar) return;
+    var y = (window.scrollY || 0);
+    if (!y && e && e.target && e.target.scrollTop != null) y = e.target.scrollTop;
+    bar.classList.toggle('scrolled', y > 8);
+  }
+  onScroll();
+  window.addEventListener('scroll', onScroll, { passive: true });
+  document.addEventListener('scroll', onScroll, { passive: true, capture: true });
+
+  var now = document.getElementById('ed-now');
+  if (now) now.textContent = window.ED_LABEL || '';
+  var inp = document.getElementById('ed-jump-in');
+  var list = document.getElementById('ed-jump-list');
+  if (!inp || !list) return;
+
+  var here = (location.pathname.split('/').pop() || 'index.html').toLowerCase();
+  var shown = [];
+
+  function draw(q){
+    q = (q || '').trim().toLowerCase();
+    shown = TOOLS.filter(function(t){
+      if (t[0].toLowerCase() === here) return false;          /* skip this tool */
+      if (!q) return true;
+      return (t[1] + ' ' + t[2] + ' ' + t[0]).toLowerCase().indexOf(q) >= 0;
+    });
+    list.innerHTML = shown.length
+      ? shown.map(function(t,i){
+          return '<li><a href="' + t[0] + '"' + (i===0?' class="sel"':'') + '>' + t[1] + '</a></li>';
+        }).join('')
+      : '<li><a href="#" onclick="return false">Kuch nahi mila</a></li>';
+    list.classList.add('on');
+  }
+  function hide(){ list.classList.remove('on'); }
+
+  inp.addEventListener('focus', function(){ draw(inp.value); });
+  inp.addEventListener('input', function(){ draw(inp.value); });
+  inp.addEventListener('keydown', function(e){
+    var items = list.querySelectorAll('a');
+    var at = -1;
+    for (var i=0;i<items.length;i++) if (items[i].classList.contains('sel')) at = i;
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp'){
+      e.preventDefault();
+      if (!items.length) return;
+      if (at >= 0) items[at].classList.remove('sel');
+      at = e.key === 'ArrowDown' ? (at + 1) % items.length : (at <= 0 ? items.length - 1 : at - 1);
+      items[at].classList.add('sel');
+      items[at].scrollIntoView({block:'nearest'});
+    } else if (e.key === 'Enter'){
+      if (at >= 0 && items[at].getAttribute('href') !== '#'){ location.href = items[at].getAttribute('href'); }
+    } else if (e.key === 'Escape'){ hide(); inp.blur(); }
+  });
+  document.addEventListener('click', function(e){
+    if (!e.target.closest('.ed-jump')) hide();
+  });
 })();
 </script>
 <script>
@@ -455,7 +574,7 @@ table.chk-t td.tick{width:52px;}
   <a class="back-link" href="https://edudesk.pk">← EduDesk.pk</a>
 </header>
 
-<div class="page">
+<div class="ed-page">
 
 <!-- ════════ FORM PANEL ════════ -->
 <aside class="form-panel">
